@@ -1,0 +1,19 @@
+Variable,India (Formula),Nigeria (Formula),Update Frequency,Scale Direction,Notes
+Public R&D expenditure (% of GDP),0.64558,0.28444,Annual,Multiplier,World Bank WDI GB.XPD.RSDV.GD.ZS (mrnev=1)
+Electricity Access (% of population),99.5,61.2,Annual,Constraint,World Bank WDI EG.ELC.ACCS.ZS (mrnev=1)
+IT service exports (% of GDP),47.41422449,4.038177254,Annual,Multiplier,World Bank WDI BX.GSR.CCIS.ZS (mrnev=1)
+Internet users (% of population),55.9,39.2136,Annual,Multiplier,World Bank WDI IT.NET.USER.ZS (mrnev=1)
+Fixed broadband subscriptions (per 100 people),2.74535,0.0512838,Annual,Multiplier,World Bank WDI IT.NET.BBND.P2 (mrnev=1)
+Mobile cellular subscriptions (per 100 people),80.5632,98.4773,Annual,Multiplier,World Bank WDI IT.CEL.SETS.P2 (mrnev=1)
+High-tech exports (% of manufactured exports),14.9343473,3.530423703,Annual,Multiplier,World Bank WDI TX.VAL.TECH.MF.ZS (mrnev=1)
+GDP per capita (current US$),2696.6639,806.9456951,Annual,Multiplier,World Bank WDI NY.GDP.PCAP.CD (mrnev=1)
+"Government Effectiveness (WGI, estimate)",0.4751101434,-0.8479067087,Annual,Multiplier,World Bank WGI GE.EST (mrnev=1)
+Electric power consumption (kWh per capita),1181.630572,135.6033094,Annual,Multiplier,World Bank WDI EG.USE.ELEC.KH.PC (mrnev=1)
+Manufacturing value added (% of GDP),12.53368965,13.50881659,Annual,Multiplier,World Bank WDI NV.IND.MANF.ZS (mrnev=1)
+Researchers in R&D (per million people),259.26325,22.12011,Annual,Multiplier,World Bank WDI SP.POP.SCIE.RD.P6 (mrnev=1)
+National AI Strategy Presence (manual),Check: https://oecd.ai/en/policies/countries/india  (Y/N),Check: https://oecd.ai/en/policies/countries/nigeria  (Y/N),Irregular,Multiplier,Dynamic page; enter Y/N after checking.
+Data Protection Law Status (manual),Check: https://unctad.org/page/data-protection-and-privacy-legislation-worldwide  (Y/N),Check: https://unctad.org/page/data-protection-and-privacy-legislation-worldwide  (Y/N),Irregular,Multiplier,Dynamic page; enter Y/N after checking.
+"Regulatory Quality (WGI, estimate)",,,,,
+"Rule of Law (WGI, estimate)",,,,,
+"Political Stability (WGI, estimate)",,,,,
+"Voice & Accountability (WGI, estimate)",,,,,
