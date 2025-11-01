@@ -4,7 +4,6 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 import numpy as np
 
-# --- CONFIGURATION ---
 CONFIG = {
     'occupation_impact_path': "C:\\Users\\aryah\\OneDrive\\Desktop\\Arya\\AI Forecasting Hackathon\\data\\occupation_ai_impact_final.csv",
     'output_html': "C:\\Users\\aryah\\OneDrive\\Desktop\\Arya\\AI Forecasting Hackathon\\data\\ai_impact_interactive_dashboard.html",
@@ -12,38 +11,12 @@ CONFIG = {
 }
 
 def create_interactive_dashboard():
-    """Create fully interactive AI impact dashboard with sliders and filters"""
-    
-    print("=" * 60)
-    print("CREATING INTERACTIVE AI IMPACT DASHBOARD")
-    print("=" * 60)
-    
-    # Load data
-    print("\n📂 Loading data...")
     df = pd.read_csv(CONFIG['occupation_impact_path'])
-    print(f"   ✅ Loaded {len(df):,} occupations")
-    
-    # Create main figure with tabs using Plotly's updatemenus
-    # We'll create multiple views that can be toggled
-    
-    # === PREPARATION ===
-    # Sort by 2035 vulnerability for consistent ordering
     df_sorted = df.sort_values('Vulnerability_Median_2035', ascending=False)
-    
-    # Get top occupations for detailed views
     top_50 = df_sorted.head(50)
-    
-    print("\n🎨 Building interactive visualizations...")
-    
-    # ============================================================
-    # MAIN INTERACTIVE FIGURE WITH YEAR SLIDER
-    # ============================================================
-    
-    # Create frames for animation/slider (one frame per year)
     frames = []
     
     for year in CONFIG['years']:
-        # Data for this year
         year_data = df.nlargest(30, f'Vulnerability_Median_{year}').sort_values(f'Vulnerability_Median_{year}')
         
         frame_data = [
@@ -66,7 +39,6 @@ def create_interactive_dashboard():
         
         frames.append(go.Frame(data=frame_data, name=str(year)))
     
-    # Initial frame (2024)
     initial_data = df.nlargest(30, 'Vulnerability_Median_2024').sort_values('Vulnerability_Median_2024')
     
     fig = go.Figure(
@@ -90,7 +62,6 @@ def create_interactive_dashboard():
         frames=frames
     )
     
-    # Add year slider
     sliders = [{
         'active': 0,
         'yanchor': 'top',
@@ -119,7 +90,6 @@ def create_interactive_dashboard():
         ]
     }]
     
-    # Add play/pause buttons
     updatemenus = [{
         'type': 'buttons',
         'showactive': False,
@@ -167,22 +137,8 @@ def create_interactive_dashboard():
         margin=dict(l=300, r=100, t=120, b=150)
     )
     
-    print("   ✅ Created animated bar chart with year slider")
-    
-    # Save first figure
     fig.write_html(CONFIG['output_html'])
-    print(f"\n💾 Main dashboard saved to {CONFIG['output_html']}")
     
-    # ============================================================
-    # CREATE MULTI-TAB DASHBOARD WITH DROPDOWNS
-    # ============================================================
-    
-    print("\n🎨 Creating comprehensive multi-view dashboard...")
-    
-    # Create a more comprehensive dashboard with multiple interactive elements
-    from plotly.subplots import make_subplots
-    
-    # Prepare data for different views
     risk_categories_over_time = []
     for year in CONFIG['years']:
         high = (df[f'Vulnerability_Median_{year}'] > 0.7).sum()
@@ -196,7 +152,6 @@ def create_interactive_dashboard():
         })
     risk_df = pd.DataFrame(risk_categories_over_time)
     
-    # Create subplot figure
     fig2 = make_subplots(
         rows=2, cols=2,
         subplot_titles=(
@@ -213,7 +168,6 @@ def create_interactive_dashboard():
         horizontal_spacing=0.12
     )
     
-    # --- PLOT 1: Box plots over time ---
     for year in CONFIG['years']:
         fig2.add_trace(
             go.Box(
@@ -224,21 +178,17 @@ def create_interactive_dashboard():
             ),
             row=1, col=1
         )
-    
-    # --- PLOT 2: Top 10 trajectories with uncertainty bands ---
     top_10 = df.nlargest(10, 'Vulnerability_Median_2035')
     
     colors = px.colors.qualitative.Set3[:10]
     
     for idx, (_, occ) in enumerate(top_10.iterrows()):
-        occ_name = occ['Occupation'][:40]  # Truncate
+        occ_name = occ['Occupation'][:40]
         
-        # Get values
         median_vals = [occ[f'Vulnerability_Median_{year}'] for year in CONFIG['years']]
         p05_vals = [occ[f'Vulnerability_p05_{year}'] for year in CONFIG['years']]
         p95_vals = [occ[f'Vulnerability_p95_{year}'] for year in CONFIG['years']]
         
-        # Add uncertainty band
         fig2.add_trace(
             go.Scatter(
                 x=CONFIG['years'] + CONFIG['years'][::-1],
@@ -254,7 +204,6 @@ def create_interactive_dashboard():
             row=1, col=2
         )
         
-        # Add median line
         fig2.add_trace(
             go.Scatter(
                 x=CONFIG['years'],
@@ -268,7 +217,6 @@ def create_interactive_dashboard():
             row=1, col=2
         )
     
-    # --- PLOT 3: Stacked bar chart of risk categories ---
     fig2.add_trace(
         go.Bar(
             x=risk_df['Year'],
@@ -302,7 +250,6 @@ def create_interactive_dashboard():
         row=2, col=1
     )
     
-    # --- PLOT 4: Heatmap ---
     top_20_heat = df.nlargest(20, 'Vulnerability_Median_2035')
     heatmap_data = []
     y_labels = []
@@ -324,7 +271,6 @@ def create_interactive_dashboard():
         row=2, col=2
     )
     
-    # Update layout
     fig2.update_layout(
         height=1000,
         width=1600,
@@ -336,7 +282,6 @@ def create_interactive_dashboard():
         hovermode='closest'
     )
     
-    # Update axes
     fig2.update_xaxes(title_text="<b>Year</b>", row=1, col=1, tickangle=45)
     fig2.update_xaxes(title_text="<b>Year</b>", row=1, col=2)
     fig2.update_xaxes(title_text="<b>Year</b>", row=2, col=1)
@@ -346,21 +291,11 @@ def create_interactive_dashboard():
     fig2.update_yaxes(title_text="<b>Vulnerability Score</b>", row=1, col=2)
     fig2.update_yaxes(title_text="<b>Number of Occupations</b>", row=2, col=1)
     
-    # Save second dashboard
     output_path_2 = CONFIG['output_html'].replace('.html', '_comprehensive.html')
     fig2.write_html(output_path_2)
-    print(f"   ✅ Comprehensive dashboard saved to {output_path_2}")
     
-    # ============================================================
-    # CREATE SCATTER PLOT WITH RANGE SLIDERS
-    # ============================================================
-    
-    print("\n🎨 Creating interactive scatter plot explorer...")
-    
-    # Create scatter plot for 2035 with range sliders
     fig3 = go.Figure()
     
-    # Add scatter trace
     fig3.add_trace(
         go.Scatter(
             x=df['Vulnerability_Median_2024'],
@@ -382,7 +317,6 @@ def create_interactive_dashboard():
         )
     )
     
-    # Add diagonal line (no change)
     fig3.add_trace(
         go.Scatter(
             x=[0, 1],
@@ -394,7 +328,6 @@ def create_interactive_dashboard():
         )
     )
     
-    # Update scatter plot layout with fixed rangeselector
     fig3.update_layout(
         title={
             'text': '<b>Occupation Vulnerability: 2024 vs 2035</b><br>' +
@@ -425,24 +358,14 @@ def create_interactive_dashboard():
         hovermode='closest'
     )
 
-    # Add update_xaxis and update_yaxis calls to handle range updates
     fig3.update_xaxes(range=[0, 1])
     fig3.update_yaxes(range=[0, 1])
 
     output_path_3 = CONFIG['output_html'].replace('.html', '_scatter.html')
     fig3.write_html(output_path_3)
-    print(f"   ✅ Scatter plot explorer saved to {output_path_3}")
     
-    # ============================================================
-    # CREATE INTERACTIVE COMPARISON TOOL
-    # ============================================================
-    
-    print("\n🎨 Creating occupation comparison tool...")
-    
-    # Get top 20 for dropdown options
     top_20 = df.nlargest(20, 'Vulnerability_Median_2035')
     
-    # Create figure with multiple traces (one per occupation)
     fig4 = go.Figure()
     
     for idx, (_, occ) in enumerate(top_20.iterrows()):
@@ -452,10 +375,8 @@ def create_interactive_dashboard():
         
         occ_name = occ['Occupation']
         
-        # Add traces (initially all visible except first 3)
         visible = True if idx < 3 else 'legendonly'
         
-        # P95 band upper
         fig4.add_trace(
             go.Scatter(
                 x=CONFIG['years'],
@@ -469,7 +390,6 @@ def create_interactive_dashboard():
             )
         )
         
-        # P05 band lower with fill
         fig4.add_trace(
             go.Scatter(
                 x=CONFIG['years'],
@@ -485,7 +405,6 @@ def create_interactive_dashboard():
             )
         )
         
-        # Median line
         fig4.add_trace(
             go.Scatter(
                 x=CONFIG['years'],
@@ -529,11 +448,6 @@ def create_interactive_dashboard():
     
     output_path_4 = CONFIG['output_html'].replace('.html', '_comparison.html')
     fig4.write_html(output_path_4)
-    print(f"   ✅ Comparison tool saved to {output_path_4}")
-    
-    # ============================================================
-    # SUMMARY
-    # ============================================================
     
     print("\n" + "=" * 60)
     print("✅ DASHBOARD CREATION COMPLETE!")

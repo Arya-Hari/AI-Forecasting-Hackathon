@@ -3,7 +3,6 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 
-# --- CONFIGURATION ---
 CONFIG = {
     'occupation_impact_path': "C:\\Users\\aryah\\OneDrive\\Desktop\\Arya\\AI Forecasting Hackathon\\data\\occupation_ai_impact_final.csv",
     'output_html': "C:\\Users\\aryah\\OneDrive\\Desktop\\Arya\\AI Forecasting Hackathon\\data\\ai_impact_dashboard.html",
@@ -11,12 +10,8 @@ CONFIG = {
 }
 
 def create_dashboard():
-    """Create comprehensive AI impact dashboard"""
-    
-    # Load data
     df = pd.read_csv(CONFIG['occupation_impact_path'])
     
-    # Create figure with subplots
     fig = make_subplots(
         rows=3, cols=2,
         subplot_titles=(
@@ -36,7 +31,6 @@ def create_dashboard():
         horizontal_spacing=0.15
     )
     
-    # --- PLOT 1: Top Vulnerable Occupations ---
     top_20 = df.nlargest(20, 'Vulnerability_Median_2035').sort_values('Vulnerability_Median_2035')
     
     fig.add_trace(
@@ -50,7 +44,6 @@ def create_dashboard():
         row=1, col=1
     )
     
-    # --- PLOT 2: Distribution Over Time ---
     for year in [2024, 2028, 2032, 2035]:
         fig.add_trace(
             go.Violin(
@@ -62,7 +55,6 @@ def create_dashboard():
             row=1, col=2
         )
     
-    # --- PLOT 3: Trajectory Lines ---
     top_10 = df.nlargest(10, 'Vulnerability_Median_2035')
     
     for _, occ in top_10.iterrows():
@@ -72,20 +64,18 @@ def create_dashboard():
                 x=CONFIG['years'],
                 y=values,
                 mode='lines+markers',
-                name=occ['Occupation'][:30],  # Truncate long names
+                name=occ['Occupation'][:30],
                 line=dict(width=2)
             ),
             row=2, col=1
         )
     
-    # --- PLOT 4: Uncertainty Bands ---
     sample_occ = df.nlargest(1, 'Vulnerability_Median_2035').iloc[0]
     
     median_vals = [sample_occ[f'Vulnerability_Median_{year}'] for year in CONFIG['years']]
     p05_vals = [sample_occ[f'Vulnerability_p05_{year}'] for year in CONFIG['years']]
     p95_vals = [sample_occ[f'Vulnerability_p95_{year}'] for year in CONFIG['years']]
     
-    # 95th percentile
     fig.add_trace(
         go.Scatter(
             x=CONFIG['years'],
@@ -98,7 +88,6 @@ def create_dashboard():
         row=2, col=2
     )
     
-    # Fill area
     fig.add_trace(
         go.Scatter(
             x=CONFIG['years'],
@@ -113,7 +102,6 @@ def create_dashboard():
         row=2, col=2
     )
     
-    # Median
     fig.add_trace(
         go.Scatter(
             x=CONFIG['years'],
@@ -125,7 +113,6 @@ def create_dashboard():
         row=2, col=2
     )
     
-    # --- PLOT 5: Heatmap ---
     top_15 = df.nlargest(15, 'Vulnerability_Median_2035')
     heatmap_data = []
     
@@ -144,7 +131,6 @@ def create_dashboard():
         row=3, col=1
     )
     
-    # --- PLOT 6: Risk Categories ---
     risk_categories = []
     
     for year in CONFIG['years']:
@@ -172,7 +158,6 @@ def create_dashboard():
             row=3, col=2
         )
     
-    # Update layout
     fig.update_layout(
         height=1400,
         width=1600,
@@ -182,7 +167,6 @@ def create_dashboard():
         template='plotly_white'
     )
     
-    # Update axes
     fig.update_xaxes(title_text="Vulnerability Score", row=1, col=1)
     fig.update_xaxes(title_text="Year", row=2, col=1)
     fig.update_xaxes(title_text="Year", row=2, col=2)
@@ -195,7 +179,6 @@ def create_dashboard():
     fig.update_yaxes(title_text="Vulnerability", row=2, col=2)
     fig.update_yaxes(title_text="Number of Occupations", row=3, col=2)
     
-    # Save
     fig.write_html(CONFIG['output_html'])
     print(f"✅ Dashboard saved to {CONFIG['output_html']}")
     

@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 
-# --- CONFIGURATION ---
 CONFIG = {
     'occupation_impact_path': "C:\\Users\\aryah\\OneDrive\\Desktop\\Arya\\AI Forecasting Hackathon\\data\\occupation_ai_impact_final.csv",
     'capacity_indicators_path': "C:\\Users\\aryah\\OneDrive\\Desktop\\Arya\\AI Forecasting Hackathon\\data\\country_capacity_indicators.csv",
@@ -9,13 +8,7 @@ CONFIG = {
     'years': list(range(2024, 2036))
 }
 
-# --- CAPACITY MULTIPLIER LOGIC ---
 def calculate_capacity_score(country_data):
-    """
-    Calculate composite AI capacity score from World Bank indicators.
-    Higher score = faster AI adoption = higher vulnerability multiplier
-    """
-    # Map the indicators to normalized scores
     indicator_mapping = {
         'Public R&D expenditure (% of GDP)': ('rd_expenditure', 2.0),
         'Electricity Access (% of population)': ('electricity', 100.0),
@@ -27,10 +20,8 @@ def calculate_capacity_score(country_data):
         'Researchers in R&D (per million people)': ('researchers', 8000.0)
     }
     
-    # Create a dictionary of indicator values
     indicators = {}
     
-    # Extract values using the mapping
     for col_name, (key, max_val, *args) in indicator_mapping.items():
         try:
             value = pd.to_numeric(country_data[col_name], errors='coerce')
@@ -38,7 +29,7 @@ def calculate_capacity_score(country_data):
                 indicators[key] = 0.0
                 continue
                 
-            if args and args[0]:  # Special case for WGI estimates
+            if args and args[0]:  
                 value = (value + 2.5) / max_val
             else:
                 value = value / max_val
@@ -46,7 +37,6 @@ def calculate_capacity_score(country_data):
         except (KeyError, ValueError, TypeError):
             indicators[key] = 0.0
     
-    # Weighted average
     weights = {
         'rd_expenditure': 0.15,
         'electricity': 0.10,
@@ -62,51 +52,36 @@ def calculate_capacity_score(country_data):
     return capacity_score
 
 def calculate_adoption_multiplier(capacity_score):
-    """
-    Convert capacity score to adoption speed multiplier.
-    
-    High capacity → faster adoption → vulnerability realized sooner
-    Low capacity → slower adoption → vulnerability delayed
-    """
-    # Sigmoid function: multiplier ranges from 0.3 (low capacity) to 1.5 (high capacity)
     return 0.3 + 1.2 / (1 + np.exp(-5 * (capacity_score - 0.5)))
 
-# --- MAIN PROCESSING ---
 def main():
     print("=" * 60)
     print("COUNTRY-SPECIFIC AI IMPACT ANALYSIS")
     print("=" * 60)
     
-    # Load data
     print("\n📂 Loading data...")
     occupation_df = pd.read_csv(CONFIG['occupation_impact_path'])
     capacity_df = pd.read_csv(CONFIG['capacity_indicators_path'])
     
-    # Transform capacity data from wide to long format
     country_columns = [col for col in capacity_df.columns if 'Formula' in col]
     countries = [col.replace(' (Formula)', '') for col in country_columns]
     
-    # Create a list to store each country's data
     country_data_list = []
     
     for country_col, country_name in zip(country_columns, countries):
-        # Extract data for this country
         country_series = capacity_df[['Variable', country_col]].copy()
         country_series.columns = ['Variable', 'Value']
         country_series['Country'] = country_name
         country_series['Value'] = pd.to_numeric(country_series['Value'], errors='coerce')
         country_data_list.append(country_series)
     
-    # Combine all country data
     capacity_long = pd.concat(country_data_list, ignore_index=True)
     
-    # Pivot to get one row per country
     capacity_df = capacity_long.pivot(index='Country', columns='Variable', values='Value').reset_index()
     
     print(f"   ✅ Occupations: {len(occupation_df)}")
     print(f"   ✅ Countries: {len(capacity_df)}")
     
-    # Calculate capacity scores
     print("\n🔧 Calculating capacity scores...")
     capacity_df['Capacity_Score'] = capacity_df.apply(calculate_capacity_score, axis=1)
     capacity_df['Adoption_Multiplier'] = capacity_df['Capacity_Score'].apply(calculate_adoption_multiplier)
@@ -114,7 +89,6 @@ def main():
     print("\n📊 Capacity scores:")
     print(capacity_df[['Country', 'Capacity_Score', 'Adoption_Multiplier']].to_string(index=False))
     
-    # Cross-join: every occupation × every country
     print("\n🔗 Creating country-occupation combinations...")
     results = []
     
@@ -122,22 +96,17 @@ def main():
         country_name = country['Country']
         multiplier = country['Adoption_Multiplier']
         
-        # Copy occupation data
         country_occupations = occupation_df.copy()
         country_occupations['Country'] = country_name
         country_occupations['Capacity_Score'] = country['Capacity_Score']
         country_occupations['Adoption_Multiplier'] = multiplier
         
-        # Adjust vulnerability by adoption speed
-        # Faster adoption → vulnerability appears earlier and stronger
         for year in CONFIG['years']:
             years_elapsed = year - 2024
             
-            # Time adjustment: high-capacity countries reach projected vulnerability sooner
             effective_year = 2024 + (years_elapsed * multiplier)
             effective_year_int = min(2035, int(np.round(effective_year)))
             
-            # Use vulnerability from effective year
             country_occupations[f'Adjusted_Vulnerability_Median_{year}'] = \
                 country_occupations[f'Vulnerability_Median_{effective_year_int}']
             country_occupations[f'Adjusted_Vulnerability_p05_{year}'] = \
@@ -147,16 +116,13 @@ def main():
         
         results.append(country_occupations)
     
-    # Combine all countries
     final_df = pd.concat(results, ignore_index=True)
     
     print(f"   ✅ Created {len(final_df):,} country-occupation combinations")
     
-    # Save
     print(f"\n💾 Saving to {CONFIG['output_path']}...")
     final_df.to_csv(CONFIG['output_path'], index=False)
     
-    # Summary
     print("\n📈 Sample results:")
     sample_cols = ['Country', 'Occupation', 'Capacity_Score', 
                    'Adjusted_Vulnerability_Median_2024', 'Adjusted_Vulnerability_Median_2035']
